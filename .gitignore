@@ -39,3 +39,5 @@ build/
 # Autres fichiers sensibles
 secrets.yml
 .env.local
+
+/.serverless
