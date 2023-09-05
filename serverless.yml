@@ -5,6 +5,21 @@ provider:
   runtime: python3.9
   stage: dev
   region: eu-west-3
+  environment:
+    USERS_TABLE: Users
+    SEARCHES_TABLE: Searches
+    APARTMENTS_TABLE: Apartments
+    SPOTS_TABLE: Spots
+    USER_APARTMENTS_TABLE: UserApartments
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/*"
 
 plugins:
   - serverless-wsgi
@@ -15,13 +30,14 @@ functions:
     handler: wsgi_handler.handler
     events:
       - http:
-          path: /
+          path: /api/users
           method: get
       - http:
-          path: /api/data
-          method: get
-      # - http: ANY /
-      # - http: 'ANY {proxy+}'
+          path: /api/users
+          method: post
+      - http:
+          path: /api/users
+          method: delete
 
 custom:
   wsgi:
@@ -29,3 +45,87 @@ custom:
     packRequirements: false
   pythonRequirements:
     dockerizePip: non-linux
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.USERS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 4
+          WriteCapacityUnits: 4
+
+    SearchesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.SEARCHES_TABLE}
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: searchId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: searchId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 4
+          WriteCapacityUnits: 4
+
+    ApartmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.APARTMENTS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: apartmentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: apartmentId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 4
+          WriteCapacityUnits: 4
+
+    SpotsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.SPOTS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: pointId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: pointId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 4
+          WriteCapacityUnits: 4
+
+    UserApartmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: UserApartments-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: userId_searchId
+            AttributeType: S
+          - AttributeName: apartmentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId_searchId
+            KeyType: HASH
+          - AttributeName: apartmentId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 4
+          WriteCapacityUnits: 4
