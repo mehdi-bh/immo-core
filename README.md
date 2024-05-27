@@ -1,8 +1,9 @@
 # immo-core
 
-### Todo:
-- UserApartment table that associates User Searches with apartments
-- Populate UserApartment each time a new apartment is added
+### How to run
+- `pip install -r requirements.txt`
+- `python app.py`
+- http://127.0.0.1:5000/api/users
 
-### Scraper:
-- Scrape new websites regularly and populate db
+### How to deploy
+- `serverless deploy`
